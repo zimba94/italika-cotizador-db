@@ -1,0 +1,74 @@
+IF DB_ID('ItalikaDB') IS NULL
+BEGIN
+  CREATE DATABASE ItalikaDB;
+END
+GO
+USE ItalikaDB;
+GO
+
+CREATE TABLE dbo.cliente (
+  id              BIGINT IDENTITY(1,1) PRIMARY KEY,
+  nombre          NVARCHAR(120) NOT NULL,
+  telefono        NVARCHAR(30)  NOT NULL,
+  correo          NVARCHAR(120) NOT NULL
+);
+GO
+
+CREATE TABLE dbo.modelo_motocicleta (
+  id      BIGINT IDENTITY(1,1) PRIMARY KEY,
+  nombre  NVARCHAR(120) NOT NULL
+);
+GO
+
+
+CREATE TABLE dbo.version_motocicleta (
+  id            BIGINT IDENTITY(1,1) PRIMARY KEY,
+  modelo_id     BIGINT       NOT NULL,
+  nombre        NVARCHAR(120) NOT NULL,
+  precio_base   DECIMAL(18,2) NOT NULL,
+
+  CONSTRAINT FK_version_modelo
+    FOREIGN KEY (modelo_id) REFERENCES dbo.modelo_motocicleta(id)
+      ON UPDATE NO ACTION ON DELETE NO ACTION
+);
+GO
+
+
+CREATE TABLE dbo.cotizacion (
+  id                      BIGINT IDENTITY(1,1) PRIMARY KEY,
+  version_id              BIGINT        NOT NULL,
+  cliente_id              BIGINT        NOT NULL,
+  fecha_cotizacion        DATETIME2     NOT NULL DEFAULT SYSDATETIME(),
+
+  precio_sin_iva          DECIMAL(18,2) NOT NULL,
+  iva                     DECIMAL(18,2) NOT NULL,
+  gastos_administrativos  DECIMAL(18,2) NOT NULL,
+  costo_accesorios        DECIMAL(18,2) NOT NULL,
+  costo_seguro            DECIMAL(18,2) NOT NULL,
+  costo_total             DECIMAL(18,2) NOT NULL,
+
+  enganche                DECIMAL(18,2) NOT NULL,
+  meses_financiamiento    INT           NULL,        
+  tasa_anual              DECIMAL(5,2)  NULL,         
+
+  CONSTRAINT FK_cotizacion_version
+    FOREIGN KEY (version_id) REFERENCES dbo.version_motocicleta(id)
+      ON UPDATE NO ACTION ON DELETE NO ACTION,
+
+  CONSTRAINT FK_cotizacion_cliente
+    FOREIGN KEY (cliente_id) REFERENCES dbo.cliente(id)
+      ON UPDATE NO ACTION ON DELETE NO ACTION
+);
+GO
+
+
+
+INSERT INTO dbo.modelo_motocicleta (nombre)
+VALUES (N'Italika FT150'), (N'Italika Vortex 300');
+
+INSERT INTO dbo.version_motocicleta (modelo_id, nombre, precio_base)
+VALUES
+  (1, N'Estandar', 28999.00),
+  (1, N'ABS',      31999.00),
+  (2, N'Estandar', 89999.00);
+GO
